@@ -1,30 +1,25 @@
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-
-data = pd.read_csv('housing.csv')
-
-data_numeric = data.apply(pd.to_numeric, errors='coerce')
-data_filled = data_numeric.fillna(data_numeric.mean())
-
-X = data_filled.drop(columns=['ocean_proximity', 'median_house_value']).values
-Y = data['median_house_value'].values.reshape(-1, 1)
-
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
-scaler_Y = StandardScaler()  
-Y_scaled = scaler_Y.fit_transform(Y)
+from Poly_tensor_regressor import PolynomialTensorRegression
+import numpy as np
 
 decomp_rank = 3  # Decomposition rank
 poly_order = 3  # Polynomial order
-net_dims = (32, 32)  # Network layer dimensions
-reg_lambda_w = 0.01  # Regularization strength for W
-reg_lambda_c = 0.01  # Regularization strength for C
+net_dims = (64, 32)  # Network layer dimensions
+reg_lambda = 0.01  # Regularization strength
 
-model = PolynomialTensorRegression(decomp_rank = 3,
-                                   poly_order = 3,
-                                   method='cp',
-                                   reg_lambda_w = 0.01, 
-                                   reg_lambda_c = 0.01) 
-model.train_model(X_scaled, Y_scaled)
+np.random.seed(42)
 
-polynomial = model.get_significant_polynomial()
+X = np.random.rand(100, 3, 2)
+X = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
+y = np.random.rand(100)
+reg_lambda_w = 0.1
+reg_lambda_c = 0.1
+losses = []
+
+neuron = PolynomialTensorRegression(decomp_rank, 
+                                    poly_order, 
+                                    method='cp', 
+                                    reg_lambda_w=0.01, 
+                                    reg_lambda_c=0.01) 
+
+neuron.fit(X,y)
+print(neuron.neuron)

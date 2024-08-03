@@ -49,7 +49,7 @@ class PolynomialTensorRegression(nn.Module):
         self.C = nn.ParameterList(
             [nn.Parameter(torch.randn(1)) for _ in range(poly_order)])
         self.beta = nn.Parameter(torch.randn(1))
-        self.network = self._build_network(self.net_dims)
+        self.network = self.build_network(self.net_dims)
         self.neuron = None
         self.U = nn.ModuleList()
         if method == 'tucker':
@@ -135,12 +135,11 @@ class PolynomialTensorRegression(nn.Module):
         for i in range(rank):
             outer_product = u_factors[0][:, i]
             for factor in u_factors[1:]:
-                outer_product = torch.ger(outer_product, factor[:,
-                                                                i]).reshape(-1)
+                outer_product = torch.ger(outer_product, factor[:,i]).reshape(-1)
             W += outer_product.reshape(rank_shape)
         return W
 
-    def _compute_polynomial_term(self, z, i):
+    def compute_polynomial_term(self, z, i):
         r"""
         Computes a specific term of the polynomial.
 
@@ -155,10 +154,10 @@ class PolynomialTensorRegression(nn.Module):
         #print(f'U factor shape is{u_factors.shape}')
         if self.method == 'tucker':
             core_tensor = self.core_tensors[i]
-            weight_tensor = self._tucker_tensor_reconstruct(
+            weight_tensor = self.tucker_tensor_reconstruct(
                 core_tensor, u_factors)
         elif self.method == 'cp':
-            weight_tensor = self._cp_tensor_reconstruct(u_factors)
+            weight_tensor = self.cp_tensor_reconstruct(u_factors)
         #print(f'W tensor of term {i} shape is : {weight_tensor.shape}')
         for _ in range(i + 1):
 
@@ -179,7 +178,7 @@ class PolynomialTensorRegression(nn.Module):
             z = x.view(-1)
             result = self.beta.clone()
             for j in range(self.poly_order):
-                term, weight_tensor = self._compute_polynomial_term(z, j)
+                term, weight_tensor = self.compute_polynomial_term(z, j)
                 result += term
                 #regularization_loss_w += torch.sum(weight_tensor**2)/weight_tensor.numel()
                 regularization_loss_w += torch.sum(
@@ -290,5 +289,4 @@ class PolynomialTensorRegression(nn.Module):
         - The significant polynomial as a string.
         """
         self.train_model(X, y, loss_picture=loss_picture)
-        significant_polynomial = self.get_significant_polynomial()
-        return significant_polynomial
+        self.neuron = self.get_significant_polynomial()
