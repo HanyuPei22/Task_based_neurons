@@ -192,7 +192,7 @@ class PolynomialTensorRegression(nn.Module):
         #self.reg_lambda_w * regularization_loss_w
         return torch.stack(preds).view(-1), regularization_loss
 
-    def train_model(self, X, y, loss_picture=False):
+    def train_model(self, X, y, view_training_process=False):
         r"""
         Trains the model.
 
@@ -229,13 +229,13 @@ class PolynomialTensorRegression(nn.Module):
 
             epoch_loss /= len(dataloader)
             losses.append(epoch_loss)
+            if view_training_process:
+                if (epoch + 1) % 10 == 0:
+                    print(
+                        f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {loss.item():.4f}'
+                    )
 
-            if (epoch + 1) % 10 == 0:
-                print(
-                    f'Epoch [{epoch + 1}/{self.num_epochs}], Loss: {loss.item():.4f}'
-                )
-
-        if loss_picture:
+        if view_training_process:
             plt.figure(figsize=(10, 5))
             plt.plot(losses, label='Loss')
             plt.xlabel('Epoch')
@@ -273,20 +273,20 @@ class PolynomialTensorRegression(nn.Module):
         polynomial = ' + '.join(significant_terms)
         if not polynomial:
             polynomial = '0'
-        print('Significant Polynomial:', polynomial)
+        #print('Significant Polynomial:', polynomial)
         return polynomial
 
-    def fit(self, X, y, loss_picture=False):
+    def fit(self, X, y, view_training_process=False):
         r"""
         Fits the model to the data.
 
         Parameters:
         - X: Input data.
         - y: Target data.
-        - loss_picture: Boolean indicating whether to plot the training loss.
+        - view_training_process: Boolean indicating whether to plot the training loss.
 
         Returns:
         - The significant polynomial as a string.
         """
-        self.train_model(X, y, loss_picture=loss_picture)
+        self.train_model(X, y, view_training_process=view_training_process)
         self.neuron = self.get_significant_polynomial()
