@@ -265,12 +265,21 @@ class PolynomialTensorRegression(nn.Module):
         """
         threshold = self.get_dynamic_threshold()
         significant_terms = []
-        significant_terms.append(f'{self.beta.item():.4f}')
+        if self.beta.item() >= 0:
+            significant_terms.append(f'{self.beta.item():.4f}')
+        else:
+            significant_terms.append(f'- {abs(self.beta.item()):.4f}')
+            
         for i, c in enumerate(self.C):
-            if abs(c.item()) > threshold:
-                term = f'{c.item():.4f} @ x**{i + 1}'
+            c_value = c.item()
+            if abs(c_value) > threshold:
+                if c_value >= 0:
+                    term = f'+ {c_value:.4f} @ x**{i + 1}'
+                else:
+                    term = f'- {abs(c_value):.4f} @ x**{i + 1}'
                 significant_terms.append(term)
-        polynomial = ' + '.join(significant_terms)
+        
+        polynomial = ' '.join(significant_terms)
         if not polynomial:
             polynomial = '0'
         #print('Significant Polynomial:', polynomial)
